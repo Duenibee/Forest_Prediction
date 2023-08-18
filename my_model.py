@@ -1,9 +1,8 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from torch import nn
 import torch
 import random
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 
 np.set_printoptions(threshold=np.inf, linewidth=np.inf) 
 num_video=20
@@ -26,7 +25,6 @@ USE_CUDA=torch.cuda.is_available()
 device=torch.device("cuda" if USE_CUDA else 'cpu')
 device='cuda'
 
-print("다음 기기로 학습합니다:", device)
 random.seed(777)
 torch.manual_seed(777)
 if device=='cuda':
@@ -108,49 +106,3 @@ class CNN(torch.nn.Module):
 
         out = self.fc4(out)
         return out
-def saveModel(net): 
-    path = "/home/aims/obb_contents/weights/train_xy_ver_fast/final.pth" 
-    torch.save(net.state_dict(), path) 
-
-
-# model_x = CNN().to(device)
-# model_y = CNN().to(device)
-
-
-# testsets =CustomDataset(input_arr,input_label)
-# test_loader= DataLoader(testsets, batch_size=1, shuffle=False)
-# model_x.load_state_dict(torch.load(PATH_weight_x))
-# model_x.eval()
-
-# model_y.load_state_dict(torch.load(PATH_weight_y))
-# model_y.eval()
-
-
-# batch_size = test_loader.batch_size
-# correct = 0
-# total = 0
-# error1=0
-# error2=0
-
-# center_axis=340
-# red = (0, 0, 255)
-# green = (0, 255, 0)
-# sky=(255, 255,0)
-# white=(255, 255,255)
-# ref_left=(315,340)
-# ref_right=(385,340)
-
-# loop_count=1
-# loop_count_2=0
-# a=list(test_loader)
-# with torch.no_grad():
-# outputs_x = model_x(a[loop_count_2][0])
-# outputs_y = model_y(a[loop_count_2][0])
-# # print(a[loop_count-1])
-# x=int(outputs_x[:,0])
-# y=int(outputs_y[:,0])
-
-# # y=int(outputs[:,1])
-# print(x)
-
-# frame=cv2.circle(frame, (x,y), 5, red, -1)
