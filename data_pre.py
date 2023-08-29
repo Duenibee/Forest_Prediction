@@ -14,10 +14,10 @@ class real_time_data_pre:
         self.input_arr=np.zeros((0,3))
 
         # reference 설정
-        self.ref_left=(315,340)
-        self.ref_right=(385,340)
+        self.ref_left=(315,372)
+        self.ref_right=(385,372)
         self.count=0
-        self.center_axis=340
+        self.center_axis=360
     def first_pre(self, x, y, l_r):
         in_data=[x, y, l_r]
         self.input_arr=np.insert(self.input_arr,self.count,in_data,axis=0)
@@ -42,12 +42,12 @@ class real_time_data_pre:
                 temp_y=temp_arr[i22,1]
             x_vel/=4
             y_vel/=4
-            x_temp=np.round(temp_arr[index_0[-1],0]+x_vel,0)
+            x_temp=np.round(temp_arr[index_0[-1],0],0)
             y_temp=np.round(temp_arr[index_0[-1],1]+y_vel,0)
 
             # extrapolation의 제한을 둔다.
             data_np_2[0,0]=x_temp
-            data_np_2[0,1]=(lambda y: y if y<340 else self.ref_left[1]) (y_temp)
+            data_np_2[0,1]=(lambda y: y if y<self.ref_left[1] else self.ref_left[1]) (y_temp)
 
             # 오른발 extrapolation 
             x_vel=0
@@ -66,7 +66,7 @@ class real_time_data_pre:
 
             # extrapolation의 제한을 둔다.
             data_np_2[1,0]=x_temp
-            data_np_2[1,1]=(lambda x: x if x<340 else self.ref_right[1]) (y_temp)
+            data_np_2[1,1]=(lambda x: x if x<self.ref_left[1] else self.ref_right[1]) (y_temp)
 
             insert1=np.zeros((0,3))
             insert2=np.zeros((0,3))
@@ -96,7 +96,7 @@ class real_time_data_pre:
 
                 # extrapolation의 제한을 둔다.
                 data_np_2[1,0]=x_temp
-                data_np_2[1,1]=(lambda x: x if x<340 else self.ref_left[1]) (y_temp)
+                data_np_2[1,1]=(lambda x: x if x<self.ref_left[1] else self.ref_left[1]) (y_temp)
         
             if data_np_2[1,2]==1:
                 x_vel=0
@@ -115,7 +115,7 @@ class real_time_data_pre:
                 y_temp=np.round(temp_arr[index_1[-1],1]+y_vel,0)
                 # extrapolation의 제한을 둔다.
                 data_np_2[1,0]=x_temp
-                data_np_2[1,1]=(lambda x: x if x<340 else self.ref_right[1]) (y_temp)
+                data_np_2[1,1]=(lambda x: x if x<self.ref_left[1] else self.ref_right[1]) (y_temp)
 
             insert1=np.zeros((0,3))
             insert2=np.zeros((0,3))
@@ -144,6 +144,9 @@ class real_time_data_pre:
     def get_info(results):
         j_f=0
         j_r=0
+        j_r_m=0
+        j_f_m=0
+
         if len(results)!=0:
             for r in results:                                                                                                                                                                                                            
                 boxes = r.boxes  # Boxes object for bbox outputs                                                                                                                                                                         
@@ -154,19 +157,28 @@ class real_time_data_pre:
                 check_index_foot=np.where(check_arr==False)
                 cx_cy_w_h_r =np.zeros((0,4))
                 cx_cy_w_h_f =np.zeros((0,4))
+                mask_r =np.zeros((0,384, 640))
+                mask_f =np.zeros((0,384, 640))
+
+
                 # 각 배열에서 cx cy 좌표 추출
                 if len(boxes.xywh) !=0:
                     for index1, c in enumerate(boxes.xywh):
                         c_np=np.array(c.cpu().numpy())
                         if index1 in check_index_rock[0]:
-                            print(index1)
                             cx_cy_w_h_r=np.insert(cx_cy_w_h_r,j_r,[c_np[0],c_np[1],c_np[2],c_np[3]],axis=0)
                             j_r+=1
                         elif index1 in check_index_foot[0] and 200<c_np[0]<450:
                             cx_cy_w_h_f=np.insert(cx_cy_w_h_f,j_f,[c_np[0],c_np[1],c_np[2],c_np[3]],axis=0)
                             j_f+=1
-                x_coordinates_mask = []
-                y_coordinates_mask = []
+                    for index1, c in enumerate(masks.data):
+                        c_np=np.array(c.cpu().numpy())
+                        if index1 in check_index_rock[0]:
+                            mask_r=np.insert(mask_r,j_r_m,c_np,axis=0)
+                            j_r_m+=1
+                        elif index1 in check_index_foot[0]:
+                            mask_f=np.insert(mask_f,j_f_m,c_np,axis=0)
+                            j_f_m+=1
                 # 각 배열에서 mask x y 좌표 추출
                 # for index, arr in enumerate(masks.xy):
                 #     if index in check_index_rock[0]:
@@ -174,7 +186,7 @@ class real_time_data_pre:
                 #         x_coordinates_mask.append(x)
                 #         y = [point[1] for point in arr]  # 각 배열 내 모든 좌표의 첫 번째 요소가 x 좌표
                 #         y_coordinates_mask.append(y)
-        return cx_cy_w_h_r,j_r,cx_cy_w_h_f,j_f
+        return cx_cy_w_h_r,j_r,cx_cy_w_h_f,j_f,mask_r,mask_f
 
 
     def data_foot(self,foots,j_f,real_data):
