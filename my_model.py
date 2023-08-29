@@ -4,22 +4,6 @@ import torch
 import random
 from torch.utils.data import Dataset
 
-np.set_printoptions(threshold=np.inf, linewidth=np.inf) 
-num_video=20
-
-# 데이터 로드
-input_arr=np.load(f"/home/aims/obb_contents/annotation/circle_gt/numpy/input_arr_{num_video}.npy")
-input_label=np.load(f"/home/aims/obb_contents/annotation/circle_gt/numpy/input_label_{num_video}.npy")
-print(input_arr.shape)
-print(input_label.shape)
-shape=input_arr.shape
-
-input_arr=input_arr.reshape((shape[0],30,6))
-
-# 데이터 정규화
-# Data_Pre.min_max_normalize(input_arr)
-
-# ---------학습------------
 #gpu설정
 USE_CUDA=torch.cuda.is_available()
 device=torch.device("cuda" if USE_CUDA else 'cpu')
@@ -41,8 +25,6 @@ class CustomDataset(Dataset):
 
   # 인덱스를 입력받아 그에 맵핑되는 입출력 데이터를 파이토치의 Tensor 형태로 리턴
   def __getitem__(self,idx):
-    print(self.x[idx].shape)
-
     arr=self.x[idx].reshape(1,30,6)
     x=torch.from_numpy(arr).to(device).float()
     return x
@@ -54,16 +36,15 @@ class CNN(torch.nn.Module):
         self.layer1 = torch.nn.Sequential(
             torch.nn.Conv2d(out_channels=16, in_channels=1 ,kernel_size=(6,3), stride=1),
             torch.nn.ReLU(),
-            nn.MaxPool2d(kernel_size=3, stride=1) #pooling layer
+            nn.MaxPool2d(kernel_size=2, stride=2) #pooling layer
             )
         
         # self.layer2 = torch.nn.Sequential(
-            # torch.nn.Conv2d(in_channels=20, out_channels=256,kernel_size=2, stride=1),
-            # torch.nn.ReLU(),
-            # nn.MaxPool2d(kernel_size=2, stride=2) #pooling layer
-            # )
+        #     torch.nn.Conv2d(in_channels=1, out_channels=8, kernel_size=2, stride=1),
+        #     torch.nn.ReLU(),
+        #     )
         
-        self.fc1 = torch.nn.Linear(736, 32)
+        self.fc1 = torch.nn.Linear(384 , 32)
         torch.nn.init.xavier_uniform_(self.fc1.weight)
 
         self.layer3 = torch.nn.Sequential(
@@ -93,6 +74,7 @@ class CNN(torch.nn.Module):
         
         self.fc4 = torch.nn.Linear(8, 1)
         torch.nn.init.xavier_uniform_(self.fc4.weight)
+
 
         
     def forward(self, x):
