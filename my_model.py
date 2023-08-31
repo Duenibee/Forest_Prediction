@@ -28,28 +28,28 @@ class CustomDataset(Dataset):
     arr=self.x[idx].reshape(1,30,6)
     x=torch.from_numpy(arr).to(device).float()
     return x
-
 class CNN(torch.nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.keep_prob = 0.5
+        self.keep_prob = 0.8
+
         self.layer1 = torch.nn.Sequential(
             torch.nn.Conv2d(out_channels=16, in_channels=1 ,kernel_size=(6,3), stride=1),
-            torch.nn.ReLU(),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2) #pooling layer
             )
         
-        # self.layer2 = torch.nn.Sequential(
-        #     torch.nn.Conv2d(in_channels=1, out_channels=8, kernel_size=2, stride=1),
-        #     torch.nn.ReLU(),
-        #     )
+        self.layer2 = torch.nn.Sequential(
+            torch.nn.Conv2d(in_channels=1, out_channels=8, kernel_size=2, stride=1),
+            torch.nn.ReLU(),
+            )
         
         self.fc1 = torch.nn.Linear(384 , 32)
         torch.nn.init.xavier_uniform_(self.fc1.weight)
 
         self.layer3 = torch.nn.Sequential(
             self.fc1,
-            torch.nn.ReLU(),
+            nn.ReLU(),
             # torch.nn.Dropout(p=1 - self.keep_prob)
             )
 
@@ -58,7 +58,7 @@ class CNN(torch.nn.Module):
 
         self.layer4 = torch.nn.Sequential(
             self.fc2,
-            torch.nn.ReLU(),
+            nn.ReLU(),
             # torch.nn.Dropout(p=1 - self.keep_prob)
             )
 
@@ -68,7 +68,7 @@ class CNN(torch.nn.Module):
 
         self.layer5 = torch.nn.Sequential(
             self.fc3,
-            torch.nn.ReLU(),
+            nn.ReLU(),
             # torch.nn.Dropout(p=1 - self.keep_prob)
             )
         
